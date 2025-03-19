@@ -4,7 +4,7 @@ import numpy as np
 import joblib
 from pydantic import BaseModel
 from fastapi import FastAPI, HTTPException
-i  # main.py (this is the file Vercel will use as entry point)
+# main.py (this is the file Vercel will use as entry point)
 
 app = FastAPI()
 
