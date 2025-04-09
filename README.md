@@ -602,6 +602,17 @@ To view the stored data in the SQLite database:
    - Verify disk space is available
    - Use SQLite commands to check database integrity
 
+## Requirements
+```
+uvicorn==0.23.2
+numpy==1.25.2
+pandas==2.1.0
+scikit-learn==1.3.0
+joblib==1.3.2
+pydantic==2.3.0
+python-multipart==0.0.6
+```
+
 ## License and Attribution
 
 This API system was developed as part of an environmental monitoring solution. The models are trained on publicly available datasets, including:
@@ -609,4 +620,4 @@ This API system was developed as part of an environmental monitoring solution. T
 1. Air Quality Dataset: Numerically_Encoded_Air_Quality_Dataset.csv
 2. Fire Detection Dataset: smoke_detection_iot.csv
 
-For support and further information, please contact the system administrator.
+For support and further information, please contact [mozkan1@myseneca.ca](mailto:mozkan1@myseneca.ca)
