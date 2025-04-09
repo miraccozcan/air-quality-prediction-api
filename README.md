@@ -7,6 +7,11 @@
 
 A comprehensive IoT-based environmental monitoring solution that combines embedded sensor technology with cloud-based machine learning for real-time air quality analysis and early fire hazard detection.
 
+## Developed by
+- Mirac Ozcan
+- Arvin Armand 
+- Pascal Ibeh
+
 ## Table of Contents
 
 - [System Overview](#system-overview)
