@@ -373,7 +373,7 @@ CREATE TABLE IF NOT EXISTS fire_detection_data (
 
 ## Implementation Examples
 
-### Air Quality API Request (Arduino/ESP8266)
+### Air Quality API Request
 
 ```cpp
 bool sendAirQualityData(String deviceId, float co2, float pm2_5, float pm10, 
@@ -432,7 +432,7 @@ bool sendAirQualityData(String deviceId, float co2, float pm2_5, float pm10,
 }
 ```
 
-### Fire Detection API Request (Arduino/ESP8266)
+### Fire Detection API Request
 
 ```cpp
 bool checkForFire(String deviceId, float temperature, float humidity, 
