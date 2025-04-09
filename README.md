@@ -1,27 +1,80 @@
-# Air Quality and Fire Detection API
+# Smart Environmental Monitoring System
 
-This document provides comprehensive documentation for the Air Quality and Fire Detection API system. The API serves predictions from machine learning models trained to detect unsafe air quality conditions and potential fire hazards based on sensor data.
+A comprehensive IoT-based environmental monitoring solution that combines hardware sensors with cloud-based machine learning for accurate air quality and fire hazard detection.
 
-## Overview
+## System Overview
 
-The system consists of:
+This project consists of two main components:
 
-1. **Air Quality Model**: A RandomForest classifier trained to detect unsafe air quality conditions
-2. **Fire Detection Model**: A RandomForest classifier trained to detect potential fire conditions
-3. **REST API**: FastAPI endpoints to serve predictions and store sensor data
-4. **Database**: SQLite database that stores all sensor readings and predictions
+1. **Hardware Component**: A Freedom K64F microcontroller-based environmental monitoring device with multiple sensors
+2. **Cloud Component**: A RESTful API that serves machine learning models for air quality and fire detection
 
-The API is designed to be used by IoT devices and microcontrollers that collect environmental sensor data, allowing them to leverage sophisticated machine learning models without requiring significant on-device computing power.
+The system is designed to collect environmental data (temperature, humidity, air quality, particle concentration) from various sensors, process that data locally, and then transmit it to the cloud for advanced analysis using machine learning models.
 
-## API Endpoints
+## Hardware Component
 
-### Base URL
+### Components Used
+
+- **Microcontroller**: NXP Freedom K64F (ARM Cortex-M4F)
+- **Display**: 20x4 Character LCD with I2C interface
+- **Environmental Sensors**:
+  - **BME680**: Temperature, humidity, and pressure sensor
+  - **ENS160**: VOC, CO2 and air quality sensor
+  - **PMS5003**: Particulate matter sensor
+- **Connectivity**: ESP8266 WiFi module
+
+### Sensor Features
+
+#### BME680 Environmental Sensor
+- Temperature measurement (°C)
+- Relative humidity (%)
+- Atmospheric pressure (hPa)
+
+#### ENS160 Air Quality Sensor
+- Air Quality Index (AQI) on a scale of 1-5
+- Total Volatile Organic Compounds (TVOC) in ppb
+- Equivalent CO2 (eCO2) in ppm
+
+#### PMS5003 Particulate Matter Sensor
+- PM1.0, PM2.5, and PM10 concentration (μg/m³)
+- Particle count per 0.1L air for various particle sizes (>0.3μm, >0.5μm, >1.0μm, >2.5μm, >5.0μm, >10μm)
+
+### Hardware Setup
+
+1. Connect the BME680 sensor to the I2C bus (SDA: PTE25, SCL: PTE24)
+2. Connect the ENS160 sensor to the same I2C bus
+3. Connect the PMS5003 sensor to UART (TX: PTC17, RX: PTC16)
+4. Connect the ESP8266 module to UART2 (TX: PTD3, RX: PTD2)
+5. Connect the LCD display to the I2C bus
+6. Connect a button to PTC3 for user interaction
+
+### Firmware Features
+
+- Multi-sensor data acquisition and processing
+- Data averaging to improve accuracy
+- Automatic sensor calibration
+- WiFi connectivity for data transmission
+- Multiple display modes with automatic cycling:
+  - Environmental data (temperature, humidity, pressure)
+  - Air quality data (AQI, TVOC, eCO2)
+  - Combined view with key metrics
+  - Particle data (PM1.0, PM2.5, PM10)
+  - WiFi status information
+  - API results (air quality and fire detection predictions)
+- Button-triggered data collection
+- Automatic API data transmission
+
+## Cloud Component: Air Quality and Fire Detection API
+
+The API leverages machine learning models to analyze sensor data and provide predictions about air quality conditions and potential fire hazards.
+
+### API Base URL
 
 ```
 http://embedapi.botechgida.com
 ```
 
-### Endpoints
+### API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -32,247 +85,9 @@ http://embedapi.botechgida.com
 | `/api/data/fire-detection` | GET | Retrieve fire detection data |
 | `/docs` | GET | API documentation (Swagger UI) |
 
-## Air Quality Prediction
+### Machine Learning Models
 
-### Request
-
-**Endpoint:** `/api/predict`
-
-**Method:** POST
-
-**Content-Type:** application/json
-
-**Example Request Body:**
-
-```json
-{
-  "device_id": "device-living-room",
-  "co2": 450,
-  "pm2_5": 10,
-  "pm10": 22,
-  "temperature": 17,
-  "humidity": 62.5,
-  "co2_category": 0,
-  "pm2_5_category": 0,
-  "pm10_category": 0,
-  "hour": 14,
-  "day_of_week": 2,
-  "is_weekend": 0
-}
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| device_id | string | Yes | Unique identifier for the device |
-| co2 | float | Yes | CO2 level in ppm |
-| pm2_5 | float | Yes | PM2.5 particulate matter in µg/m³ |
-| pm10 | float | Yes | PM10 particulate matter in µg/m³ |
-| temperature | float | Yes | Temperature in °C |
-| humidity | float | Yes | Relative humidity in % |
-| co2_category | integer | No | CO2 category (0=Good, 1=Moderate, 2=Poor) |
-| pm2_5_category | integer | No | PM2.5 category (0=Good, 1=Moderate, 2=Poor) |
-| pm10_category | integer | No | PM10 category (0=Good, 1=Moderate, 2=Poor) |
-| hour | integer | No | Hour of day (0-23) |
-| day_of_week | integer | No | Day of week (0-6, where 0=Monday) |
-| is_weekend | integer | No | Weekend indicator (0=weekday, 1=weekend) |
-
-### Response
-
-**Example Response:**
-
-```json
-{
-  "status": 1,
-  "is_unsafe": true,
-  "probability": 0.84,
-  "message": "Unsafe air quality detected!",
-  "timestamp": "2025-04-08T20:15:36.143344+00:00"
-}
-```
-
-**Response Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| status | integer | 0 for safe, 1 for unsafe |
-| is_unsafe | boolean | Indicates if air quality is unsafe |
-| probability | float | Probability of unsafe condition (0-1) |
-| message | string | Human-readable message |
-| timestamp | string | UTC timestamp of the prediction |
-
-## Fire Detection Prediction
-
-### Request
-
-**Endpoint:** `/api/predict-fire`
-
-**Method:** POST
-
-**Content-Type:** application/json
-
-**Example Request Body:**
-
-```json
-{
-  "device_id": "device-kitchen",
-  "temperature": 32,
-  "humidity": 35,
-  "tvoc": 350,
-  "eco2": 750,
-  "raw_h2": 18000,
-  "raw_ethanol": 20000,
-  "pressure": 1010,
-  "pm1_0": 12,
-  "pm2_5": 20,
-  "nc0_5": 180,
-  "nc1_0": 90,
-  "nc2_5": 35
-}
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| device_id | string | Yes | Unique identifier for the device |
-| temperature | float | Yes | Temperature in °C |
-| humidity | float | Yes | Relative humidity in % |
-| tvoc | float | Yes | Total Volatile Organic Compounds in ppb |
-| eco2 | float | Yes | Equivalent CO2 in ppm |
-| raw_h2 | float | Yes | Raw H2 gas sensor reading |
-| raw_ethanol | float | Yes | Raw ethanol gas sensor reading |
-| pressure | float | Yes | Atmospheric pressure in hPa |
-| pm1_0 | float | Yes | PM1.0 particulate matter in µg/m³ |
-| pm2_5 | float | Yes | PM2.5 particulate matter in µg/m³ |
-| nc0_5 | float | Yes | Number concentration of particles > 0.5µm |
-| nc1_0 | float | Yes | Number concentration of particles > 1.0µm |
-| nc2_5 | float | Yes | Number concentration of particles > 2.5µm |
-
-### Response
-
-**Example Response:**
-
-```json
-{
-  "fire_alarm": 1,
-  "is_fire_detected": true,
-  "probability": 0.64,
-  "message": "Fire detected!",
-  "timestamp": "2025-04-08T20:15:57.614509+00:00"
-}
-```
-
-**Response Parameters:**
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| fire_alarm | integer | 0 for no fire, 1 for fire detected |
-| is_fire_detected | boolean | Indicates if fire is detected |
-| probability | float | Probability of fire (0-1) |
-| message | string | Human-readable message |
-| timestamp | string | UTC timestamp of the prediction |
-
-## Data Retrieval
-
-### Air Quality Data
-
-**Endpoint:** `/api/data/air-quality`
-
-**Method:** GET
-
-**Query Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| limit | integer | No | Maximum number of records to return (default: 100) |
-| device_id | string | No | Filter results by device ID |
-
-**Example Request:**
-```
-GET /api/data/air-quality?limit=10&device_id=test-device-01
-```
-
-**Example Response:**
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "timestamp": "2025-04-08T19:51:30.643179+00:00",
-      "device_id": "test-device-01",
-      "co2": 450.0,
-      "pm2_5": 10.0,
-      "pm10": 22.0,
-      "temperature": 17.0,
-      "humidity": 62.5,
-      "co2_category": 0,
-      "pm2_5_category": 0,
-      "pm10_category": 0,
-      "hour": 0,
-      "day_of_week": 0,
-      "is_weekend": 0,
-      "prediction": 0,
-      "probability": 0.12
-    },
-    // More records...
-  ],
-  "count": 10
-}
-```
-
-### Fire Detection Data
-
-**Endpoint:** `/api/data/fire-detection`
-
-**Method:** GET
-
-**Query Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| limit | integer | No | Maximum number of records to return (default: 100) |
-| device_id | string | No | Filter results by device ID |
-
-**Example Request:**
-```
-GET /api/data/fire-detection?limit=10&device_id=test-device-01
-```
-
-**Example Response:**
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "timestamp": "2025-04-08T19:52:03.580392+00:00",
-      "device_id": "test-device-01",
-      "temperature": 25.0,
-      "humidity": 50.0,
-      "tvoc": 100.0,
-      "eco2": 450.0,
-      "raw_h2": 12000.0,
-      "raw_ethanol": 15000.0,
-      "pressure": 1013.0,
-      "pm1_0": 5.0,
-      "pm2_5": 8.0,
-      "nc0_5": 100.0,
-      "nc1_0": 50.0,
-      "nc2_5": 10.0,
-      "prediction": 0,
-      "probability": 0.37
-    },
-    // More records...
-  ],
-  "count": 10
-}
-```
-
-## Machine Learning Models
-
-### Air Quality Model
-
+#### Air Quality Model
 The air quality model is a RandomForest classifier trained on a dataset of air quality measurements. It predicts whether the air quality is safe or unsafe based on the input features.
 
 **Input Features:**
@@ -295,8 +110,7 @@ The air quality model is a RandomForest classifier trained on a dataset of air q
 **Performance:**
 - Model accuracy: 100% on test dataset
 
-### Fire Detection Model
-
+#### Fire Detection Model
 The fire detection model is a RandomForest classifier trained on the smoke detection IoT dataset. It predicts whether there is a fire hazard based on environmental and air quality sensor readings.
 
 **Input Features:**
@@ -319,6 +133,96 @@ The fire detection model is a RandomForest classifier trained on the smoke detec
 
 **Performance:**
 - Model accuracy: 100% on test dataset
+
+### API Authentication
+
+API access is currently open without authentication requirements.
+
+## Integration Between Hardware and Cloud
+
+### Data Flow
+
+1. **Sensor Data Collection**: The K64F microcontroller collects data from BME680, ENS160, and PMS5003 sensors
+2. **Local Processing**: Data is averaged and processed locally
+3. **Data Transmission**: Processed data is sent to the cloud API via WiFi (ESP8266)
+4. **Cloud Analysis**: Machine learning models analyze the data and provide predictions
+5. **Display Results**: Predictions are displayed on the LCD screen
+
+### Air Quality API Request Example
+
+The microcontroller sends data in the following format:
+
+```json
+{
+  "device_id": "smartenv-monitor",
+  "co2": 450.0,
+  "pm2_5": 10.0,
+  "pm10": 22.0,
+  "temperature": 17.0,
+  "humidity": 62.5,
+  "co2_category": 0,
+  "pm2_5_category": 0,
+  "pm10_category": 0,
+  "hour": 14,
+  "day_of_week": 3,
+  "is_weekend": 0
+}
+```
+
+### Fire Detection API Request Example
+
+```json
+{
+  "device_id": "smartenv-monitor",
+  "temperature": 25.0,
+  "humidity": 50.0,
+  "tvoc": 100.0,
+  "eco2": 450.0,
+  "raw_h2": 12000.0,
+  "raw_ethanol": 15000.0,
+  "pressure": 1013.0,
+  "pm1_0": 5.0,
+  "pm2_5": 8.0,
+  "nc0_5": 100.0,
+  "nc1_0": 50.0,
+  "nc2_5": 10.0
+}
+```
+
+## Installation and Setup
+
+### Hardware Setup
+
+1. Clone the repository or download the source code
+2. Build the project using Mbed CLI or Mbed Studio:
+   ```
+   mbed compile -m K64F -t GCC_ARM
+   ```
+3. Flash the compiled binary to the Freedom K64F board
+4. Connect the sensors and ESP8266 module as specified in the Hardware Setup section
+
+### API Setup (for self-hosting)
+
+1. Clone the API repository
+2. Install requirements:
+   ```bash
+   pip install -r requirements.txt
+   ```
+   Required packages:
+   ```
+   uvicorn==0.23.2
+   numpy==1.25.2
+   pandas==2.1.0
+   scikit-learn==1.3.0
+   joblib==1.3.2
+   pydantic==2.3.0
+   python-multipart==0.0.6
+   ```
+3. Configure database connection in `config.py`
+4. Run the server:
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 80
+   ```
 
 ## Database Schema
 
@@ -371,9 +275,30 @@ CREATE TABLE IF NOT EXISTS fire_detection_data (
 );
 ```
 
-## Implementation Examples
+## User Guide
 
-### Air Quality API Request
+### Hardware Operation
+
+1. **Initial Setup**:
+   - Power on the device
+   - The device will initialize sensors and attempt to connect to WiFi
+   - The LCD will display the welcome screen
+
+2. **Data Collection**:
+   - Press the button to start data collection
+   - The device will take multiple readings and average them
+   - If WiFi is connected, data will be sent to the cloud API
+   - The display will cycle through different data views
+
+3. **Display Modes**:
+   - The display will automatically cycle through different modes every 5 seconds
+   - Press the button again to return to the welcome screen
+
+### API Usage
+
+#### Implementation Examples
+
+##### Air Quality API Request (C++)
 
 ```cpp
 bool sendAirQualityData(String deviceId, float co2, float pm2_5, float pm10, 
@@ -432,7 +357,7 @@ bool sendAirQualityData(String deviceId, float co2, float pm2_5, float pm10,
 }
 ```
 
-### Fire Detection API Request
+##### Fire Detection API Request (C++)
 
 ```cpp
 bool checkForFire(String deviceId, float temperature, float humidity, 
@@ -493,9 +418,9 @@ bool checkForFire(String deviceId, float temperature, float humidity,
 }
 ```
 
-## Test Cases
+#### Test Cases
 
-### Air Quality Test Cases
+##### Air Quality Test Cases
 
 1. **Good Air Quality:**
    ```bash
@@ -521,7 +446,7 @@ bool checkForFire(String deviceId, float temperature, float humidity,
    ```
    **Expected response:** `status: 1, is_unsafe: true, probability: 0.98`
 
-### Fire Detection Test Cases
+##### Fire Detection Test Cases
 
 1. **Normal Conditions:**
    ```bash
@@ -547,16 +472,68 @@ bool checkForFire(String deviceId, float temperature, float humidity,
    ```
    **Expected response:** `fire_alarm: 1, is_fire_detected: true, probability: 0.67`
 
-## Deployment Information
+## Technical Details
 
-The API is deployed on a VPS with the following configuration:
+### K64F Microcontroller Specifications
+- ARM Cortex-M4 core at 120 MHz
+- 1 MB flash, 256 KB RAM
+- Multiple I2C, SPI, and UART interfaces
+- Integrated sensors and peripherals
 
-- Server: Ubuntu Linux
-- Web Server: Nginx
-- Application Server: Uvicorn
-- Python Version: 3.10
-- Domain: embedapi.botechgida.com
-- Port: 80 (HTTP)
+### WiFi Configuration
+The device is configured to connect to the following WiFi network:
+- SSID: "arvin armand"
+- Password: "tehran77"
+
+To change the WiFi settings, modify the `initESP8266()` function in the code.
+
+### Error Handling
+The system includes robust error handling for:
+- Sensor initialization failures
+- Sensor reading errors
+- WiFi connection issues
+- API communication problems
+
+### Data Processing
+- **Sensor Reading Frequency**: On demand (button press)
+- **Averaging Method**: 4 readings taken, first reading discarded, average of 3 remaining readings
+- **Calibration**: Temperature is calibrated with a -7.0°C offset for accuracy
+
+## Troubleshooting
+
+### Common Hardware Issues
+
+1. **LCD not displaying**:
+   - Check I2C connections
+   - Verify correct I2C address (0x27)
+   - Check power supply
+
+2. **WiFi not connecting**:
+   - Verify ESP8266 connections
+   - Check network availability
+   - Ensure correct credentials
+
+3. **Sensor readings inaccurate**:
+   - Allow warm-up time (especially for ENS160)
+   - Check for air flow around sensors
+   - Verify sensor connections
+
+### Common API Issues
+
+1. **API Not Responding**:
+   - Check if the service is running: `systemctl status embedapi`
+   - Check Nginx status: `systemctl status nginx`
+   - Check logs: `journalctl -u embedapi`
+
+2. **Model Prediction Errors**:
+   - Verify input data formats match the required specifications
+   - Check if models are properly loaded
+   - Review server logs for detailed error messages
+
+3. **Database Issues**:
+   - Check database file permissions
+   - Verify disk space is available
+   - Use SQLite commands to check database integrity
 
 ## Maintenance and Updates
 
@@ -583,41 +560,33 @@ To view the stored data in the SQLite database:
 6. Query data: `SELECT * FROM air_quality_data LIMIT 10;`
 7. Exit SQLite: `.exit`
 
-## Troubleshooting
+## Future Development
 
-### Common Issues
+Planned improvements for the system include:
 
-1. **API Not Responding**:
-   - Check if the service is running: `systemctl status embedapi`
-   - Check Nginx status: `systemctl status nginx`
-   - Check logs: `journalctl -u embedapi`
+1. **Hardware Enhancements**:
+   - Battery-powered operation with low-power mode
+   - Enclosure design for indoor/outdoor use
+   - Additional sensors (e.g., CO, NO2, O3)
 
-2. **Model Prediction Errors**:
-   - Verify input data formats match the required specifications
-   - Check if models are properly loaded
-   - Review server logs for detailed error messages
+2. **Software Enhancements**:
+   - Local data storage on SD card
+   - Firmware updates over WiFi
+   - User configuration interface
 
-3. **Database Issues**:
-   - Check database file permissions
-   - Verify disk space is available
-   - Use SQLite commands to check database integrity
-
-## Requirements
-```
-uvicorn==0.23.2
-numpy==1.25.2
-pandas==2.1.0
-scikit-learn==1.3.0
-joblib==1.3.2
-pydantic==2.3.0
-python-multipart==0.0.6
-```
+3. **API Enhancements**:
+   - HTTPS support for secure communication
+   - User authentication
+   - Time-series analysis and anomaly detection
+   - Mobile app integration
 
 ## License and Attribution
 
-This API system was developed as part of an environmental monitoring solution. The models are trained on publicly available datasets, including:
+This project was developed as part of an environmental monitoring solution. The models are trained on publicly available datasets, including:
 
 1. Air Quality Dataset: Numerically_Encoded_Air_Quality_Dataset.csv
 2. Fire Detection Dataset: smoke_detection_iot.csv
+
+## Contact Information
 
 For support and further information, please contact [mozkan1@myseneca.ca](mailto:mozkan1@myseneca.ca)
