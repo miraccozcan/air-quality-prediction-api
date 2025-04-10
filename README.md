@@ -6,7 +6,7 @@
 ![ML Framework](https://img.shields.io/badge/ML_framework-scikit--learn-yellow.svg)
 
 A comprehensive IoT-based environmental monitoring solution that combines embedded sensor technology with cloud-based machine learning for real-time air quality analysis and early fire hazard detection.
-
+[Website](https://air-quality-web-sandy.vercel.app)
 ## Developed by
 - Mirac Ozcan
 - Arvin Armand 
