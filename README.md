@@ -142,7 +142,7 @@ The architecture follows a distributed computing approach where:
                         │
                         │
                        ┌┴┐
-                       │ │ 4.7kΩ Pull-up
+                       │ │ 10kΩ Pull-up
                        │ │ Resistors
                        └┬┘
                         │
@@ -1088,7 +1088,7 @@ VACUUM;
 | Issue | Possible Causes | Solutions |
 |-------|----------------|-----------|
 | No display | - I2C address incorrect<br>- Contrast setting issue | - Verify I2C address (typically 0x27)<br>- Adjust contrast potentiometer |
-| Garbled display | - I2C interference<br>- Incorrect initialization | - Shorten I2C cables<br>- Add pull-up resistors (4.7kΩ) |
+| Garbled display | - I2C interference<br>- Incorrect initialization | - Shorten I2C cables<br>- Add pull-up resistors (10kΩ) |
 
 #### WiFi Connectivity Issues
 
